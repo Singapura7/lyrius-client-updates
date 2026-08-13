@@ -1,0 +1,15 @@
+LYRIUS RP — HOTFIX 1.0.6
+
+Chegou a correção definitiva da inicialização! A 1.0.6 elimina o VerifyError da
+1.0.5 e mantém tudo unido: LyriusRP original, Reputation/Studio, interfaces
+medievais e correções CPM/Emotecraft SG.8.
+
+ANTES DE ENTRAR:
+- apague a 1.0.5 e qualquer Lyrius/CPMEmoteFix duplicado;
+- instale somente LyriusRpModPlugin-1.0.6.jar;
+- use Fabric/Minecraft 1.21.4;
+- feche e abra o launcher por completo.
+
+O servidor usa LyriusReputation 0.14.4. Não use /reload.
+
+By RaulH22 and Singapura
