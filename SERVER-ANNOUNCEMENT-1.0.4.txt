@@ -1,0 +1,20 @@
+🚀 LYRIUSRP — ATUALIZAÇÃO 1.0.4
+
+Chegou a build que une de verdade o LyriusRP original, o Reputation/Studio e o CPM/Emotecraft SG.8.
+
+✨ NOVIDADES
+• Crash do canal lyriusrp corrigido
+• HUD administrativo com cor definida pelo servidor
+• Emblemas e evolução de tier com entrega confirmada
+• Diálogos organizados por ilha
+• Nova categoria Profissão para NPCs
+• Novos ícones de Loja e Missão
+• Backups organizados fora da pasta principal
+• Teleporte de NPC entre ilhas preparado pelo banco central
+• Atualizador HTTPS com SHA-256 e assinatura digital
+
+📦 Cliente 1.0.4 • Servidor 0.14.2
+
+⚠️ Remova versões antigas duplicadas e reinicie o jogo por completo.
+
+By RaulH22 and Singapura
