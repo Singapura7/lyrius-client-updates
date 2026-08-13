@@ -1,0 +1,6 @@
+{
+  "version": "1.0.6",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/v1.0.6/LyriusRpModPlugin-1.0.6.jar",
+  "sha256": "731bc77a9630ff4676b946a568c9ecce19c7ba390246e9d06790e41780796406",
+  "notes": "LyriusRpModPlugin 1.0.6: corrige definitivamente o contrato JVM do FabricLoader, elimina o VerifyError da 1.0.5 e preserva o pacote unificado LyriusRP, Reputation/Studio e CPM SG.8."
+}
