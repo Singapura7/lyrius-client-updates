@@ -1,6 +1,6 @@
 {
-  "version": "1.0.17",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.17/Lyrius-RP-Made-It-1.0.17.jar",
-  "sha256": "69b9bc02cab4fbf01cfcbfc8748b74825db052918c8ac6106b4457f0576feab9",
-  "notes": "Lyrius RP Made It 1.0.17: diálogos encadeados, Pojav, Studio, marcadores e atualização assinada."
+  "version": "1.0.18",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.18/Lyrius-RP-Made-It-1.0.18.jar",
+  "sha256": "9ded7b96edab9ac21d31148c8be0ce27c0b93343827a68322eead1c662924ab8",
+  "notes": "Lyrius RP Made It 1.0.18: verificação de cliente por sessão, compatibilidade CPM/Emotecraft isolada e updater Java assinado."
 }
