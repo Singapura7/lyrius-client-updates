@@ -1,6 +1,6 @@
 {
-  "version": "1.0.18",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.18/Lyrius-RP-Made-It-1.0.18.jar",
-  "sha256": "9ded7b96edab9ac21d31148c8be0ce27c0b93343827a68322eead1c662924ab8",
-  "notes": "Lyrius RP Made It 1.0.18: verificação de cliente por sessão, compatibilidade CPM/Emotecraft isolada e updater Java assinado."
+  "version": "1.0.19",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.19/Lyrius-RP-Made-It-1.0.19.jar",
+  "sha256": "d3fff99bba388feb76a086495851bbf8e2edd46f3a5878b97d242576a0408ecb",
+  "notes": "Lyrius RP Made It 1.0.19: efeitos de doenças restaurados no inventário, sede estabilizada, isolamento adicional CPM/Emotecraft e atualizador com instalação/renomeação verificável."
 }
