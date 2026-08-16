@@ -1,6 +1,6 @@
 {
   "version": "1.0.20",
   "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.20/Lyrius-RP-Made-It-1.0.20.jar",
-  "sha256": "167aae57a6f01b0b9fdc95cc0004456a2ee9a4937d768ac977f5aebe02e40847",
+  "sha256": "ac64a7d17a31ceeede7645fdf1163800ae9a703316b5dca88323b21d50c21f0d",
   "notes": "Lyrius RP Made It 1.0.20: updater corrigido, hotfix de inicializacao do HUD/sede e estabilidade da integracao CPM/Emotecraft."
 }
