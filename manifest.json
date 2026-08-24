@@ -1,8 +1,8 @@
 {
-  "version": "1.0.45",
-  "tag": "lyriusrp-1.0.45",
-  "file": "Lyrius-RP-Made-It-1.0.45.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.45/Lyrius-RP-Made-It-1.0.45.jar",
-  "sha256": "3852d4100109bfe233707a2c1e4ced6adae5d29eecf6a1299136129acd80a270",
-  "notes": "1.0.45: grimório compacto, ícones ItemsAdder no material correto, sincronização contínua, sem fundo no título; Spark, cinema, deserto, mochilas e Blur preservados."
+  "version": "1.0.47",
+  "tag": "lyriusrp-1.0.47",
+  "file": "Lyrius-RP-Made-It-1.0.47-DESERTO-CINEMA-GRIMORIO-SIGNED.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.47/Lyrius-RP-Made-It-1.0.47-DESERTO-CINEMA-GRIMORIO-SIGNED.jar",
+  "sha256": "708b7d41b56926113a822839dd4baaa88888c2b275124d6bf9a7787177d932b1",
+  "notes": "1.0.47: reconexão visual segura, grimório estável, atualizador anunciado pelo servidor, cinema simplificado e tumbleweed rolando e quicando."
 }
