@@ -1,8 +1,8 @@
 {
   "version": "1.0.45",
   "tag": "lyriusrp-1.0.45",
-  "file": "Lyrius-RP-Made-It-1.0.45-DESERTO-CINEMA-GRIMORIO-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.45/Lyrius-RP-Made-It-1.0.45-DESERTO-CINEMA-GRIMORIO-SIGNED.jar",
+  "file": "Lyrius-RP-Made-It-1.0.45.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.45/Lyrius-RP-Made-It-1.0.45.jar",
   "sha256": "3852d4100109bfe233707a2c1e4ced6adae5d29eecf6a1299136129acd80a270",
   "notes": "1.0.45: grimório compacto, ícones ItemsAdder no material correto, sincronização contínua, sem fundo no título; Spark, cinema, deserto, mochilas e Blur preservados."
 }
