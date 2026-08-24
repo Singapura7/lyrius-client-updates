@@ -1,8 +1,8 @@
 {
-  "version": "1.0.51",
-  "tag": "lyriusrp-1.0.51",
-  "file": "Lyrius-RP-Made-It-1.0.51-PLAYERS-SILENCIOSO-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.51/Lyrius-RP-Made-It-1.0.51-PLAYERS-SILENCIOSO-SIGNED.jar",
-  "sha256": "6c993e32f6b16735b4fde873117ad4ebb85fe15d5d62d672ce7e3205c200b935",
-  "notes": "1.0.51 FINAL: cliente assinado original preservado; hotfix server/resource-pack corrige UV/posição das mochilas, cinema com grade quente, ícones PNG do Grimório via ItemsAdder e adiciona Alquimia/essences."
+  "version": "1.0.52",
+  "tag": "lyriusrp-1.0.52",
+  "file": "Lyrius-RP-Made-It-1.0.52-PLAYERS-SILENCIOSO-UPDATER-REAL-SIGNED.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.52/Lyrius-RP-Made-It-1.0.52-PLAYERS-SILENCIOSO-UPDATER-REAL-SIGNED.jar",
+  "sha256": "02ddf739d67a66a2fb9ec6564a203a8554f08960638d357d7f4adbc14427f6fd",
+  "notes": "1.0.52: atualizador automatico real corrigido; helper externo armado antes do shutdown, troca do JAR com retry/backup/rollback, status de instalacao e versao atual detectada dinamicamente."
 }
