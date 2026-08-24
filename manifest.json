@@ -1,8 +1,8 @@
 {
-  "version": "1.0.47",
-  "tag": "lyriusrp-1.0.47",
-  "file": "Lyrius-RP-Made-It-1.0.47-DESERTO-CINEMA-GRIMORIO-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.47/Lyrius-RP-Made-It-1.0.47-DESERTO-CINEMA-GRIMORIO-SIGNED.jar",
-  "sha256": "708b7d41b56926113a822839dd4baaa88888c2b275124d6bf9a7787177d932b1",
-  "notes": "1.0.47: reconexão visual segura, grimório estável, atualizador anunciado pelo servidor, cinema simplificado e tumbleweed rolando e quicando."
+  "version": "1.0.51",
+  "tag": "lyriusrp-1.0.51",
+  "file": "Lyrius-RP-Made-It-1.0.51-PLAYERS-SILENCIOSO-SIGNED.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.51/Lyrius-RP-Made-It-1.0.51-PLAYERS-SILENCIOSO-SIGNED.jar",
+  "sha256": "6c993e32f6b16735b4fde873117ad4ebb85fe15d5d62d672ce7e3205c200b935",
+  "notes": "1.0.51 FINAL: cliente assinado original preservado; hotfix server/resource-pack corrige UV/posição das mochilas, cinema com grade quente, ícones PNG do Grimório via ItemsAdder e adiciona Alquimia/essences."
 }
