@@ -1,8 +1,8 @@
 {
-  "version": "1.0.52",
-  "tag": "lyriusrp-1.0.52",
-  "file": "Lyrius-RP-Made-It-1.0.52-PLAYERS-SILENCIOSO-UPDATER-REAL-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.52/Lyrius-RP-Made-It-1.0.52-PLAYERS-SILENCIOSO-UPDATER-REAL-SIGNED.jar",
-  "sha256": "02ddf739d67a66a2fb9ec6564a203a8554f08960638d357d7f4adbc14427f6fd",
-  "notes": "1.0.52: atualizador automatico real corrigido; helper externo armado antes do shutdown, troca do JAR com retry/backup/rollback, status de instalacao e versao atual detectada dinamicamente."
+  "version": "1.0.66",
+  "tag": "lyriusrp-1.0.66",
+  "file": "Lyrius-RP-Made-It-1.0.66-PLAYERS-GRIMORIO-WARDROBE-QUESTMAP-SIGNED.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.66/Lyrius-RP-Made-It-1.0.66-PLAYERS-GRIMORIO-WARDROBE-QUESTMAP-SIGNED.jar",
+  "sha256": "17c5224b9bbc1e36b4d78af4133b675b4ff9b1d007c84d14cd8037879a817a10",
+  "notes": "1.0.66: Grimorio dinamico com HUD somente na mao principal e icones atualizados por runtime; melhorias de performance do Wardrobe; protecao Armor3D contra crash de renderizacao; suporte visual ao mapa de inicio de quests e correcoes gerais de estabilidade."
 }
