@@ -1,8 +1,8 @@
 {
-  "version": "1.0.66",
-  "tag": "lyriusrp-1.0.66",
-  "file": "Lyrius-RP-Made-It-1.0.66-PLAYERS-GRIMORIO-WARDROBE-QUESTMAP-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.66/Lyrius-RP-Made-It-1.0.66-PLAYERS-GRIMORIO-WARDROBE-QUESTMAP-SIGNED.jar",
-  "sha256": "17c5224b9bbc1e36b4d78af4133b675b4ff9b1d007c84d14cd8037879a817a10",
-  "notes": "1.0.66: Grimorio dinamico com HUD somente na mao principal e icones atualizados por runtime; melhorias de performance do Wardrobe; protecao Armor3D contra crash de renderizacao; suporte visual ao mapa de inicio de quests e correcoes gerais de estabilidade."
+  "version": "1.0.78",
+  "tag": "lyriusrp-1.0.78",
+  "file": "Lyrius-RP-Made-It-1.0.78-PLAYERS-SIGNED.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.78/Lyrius-RP-Made-It-1.0.78-PLAYERS-SIGNED.jar",
+  "sha256": "2905c2dff08d68cc6859ba7e6fe7a5067978fa8392d3358b6ac532b1f1127019",
+  "notes": "1.0.78: corrige contaminacao de animacoes CPM + Emotecraft entre jogadores, sincronizacao dinamica do Grimorio com nomes e icones das magias, handshake entre backends e correcoes de compatibilidade/renderizacao do Lyrius RP Made It."
 }
