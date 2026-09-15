@@ -1,8 +1,8 @@
 {
-  "version": "1.0.78",
-  "tag": "lyriusrp-1.0.78",
-  "file": "Lyrius-RP-Made-It-1.0.78-PLAYERS-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.78/Lyrius-RP-Made-It-1.0.78-PLAYERS-SIGNED.jar",
-  "sha256": "2905c2dff08d68cc6859ba7e6fe7a5067978fa8392d3358b6ac532b1f1127019",
-  "notes": "1.0.78: corrige contaminacao de animacoes CPM + Emotecraft entre jogadores, sincronizacao dinamica do Grimorio com nomes e icones das magias, handshake entre backends e correcoes de compatibilidade/renderizacao do Lyrius RP Made It."
+  "version": "1.0.113",
+  "tag": "lyriusrp-1.0.113",
+  "file": "Lyrius-RP-Made-It-1.0.113-PLAYERS-SIGNED.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.113/Lyrius-RP-Made-It-1.0.113-PLAYERS-SIGNED.jar",
+  "sha256": "d8ae98974c0920f56a5a8c76913956e7103cdd2bdf22cf743b1b9712e459bf73",
+  "notes": "1.0.113: corrige o crash IllegalAccessError da chuva física, mantém o redirecionamento seguro da textura carmesim, o fade, o HUD e o bend por entidade."
 }
