@@ -1,0 +1,38 @@
+name: Lyrius Temporary Audit
+on:
+  push:
+    paths:
+      - '.github/workflows/lyrius-temp-audit.yml'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download Reputation baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-6f7c-820e-add7-46814956b5eb/raw?se=2026-09-19T21%3A32%3A56Z&sp=r&sv=2026-02-06&sr=b&scid=b5118e77-1b60-5f7c-a5b8-0e280cfa147b&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-19T12%3A39%3A37Z&ske=2026-09-20T12%3A39%3A37Z&sks=b&skv=2026-02-06&sig=smcmpuB8O9emLpYDpHvh%2BbErKjRQpTYwvvtb/5OAqJc%3D' -o rep.jar
+          sha256sum rep.jar
+          unzip -t rep.jar >/dev/null
+      - name: Decompile
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL https://www.benf.org/other/cfr/cfr-0.152.jar -o cfr.jar
+          mkdir -p out
+          java -jar cfr.jar rep.jar --outputdir out --silent true
+          find out -type f | sort > out/FILES.txt
+          for c in             com.lyrius.reputation.quest.DialogueMigrationSupport             com.lyrius.reputation.quest.DialogueStudio             com.lyrius.reputation.quest.SelectiveDialoguePublishSupport             com.lyrius.reputation.quest.BetonQuestCinematicHook             com.lyrius.reputation.items.ItemsAdderUiBridge; do
+            javap -classpath rep.jar -p -c -v "$c" > "out/${c##*.}.javap.txt" || true
+          done
+          unzip -p rep.jar plugin.yml > out/plugin.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reputation-decompiled-audit
+          path: out
+          if-no-files-found: error
