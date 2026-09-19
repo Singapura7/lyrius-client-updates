@@ -31,6 +31,16 @@ jobs:
             javap -classpath rep.jar -p -c -v "$c" > "out/${c##*.}.javap.txt" || true
           done
           unzip -p rep.jar plugin.yml > out/plugin.yml
+      - name: Print critical decompiled sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          for n in DialogueMigrationSupport DialogueStudio SelectiveDialoguePublishSupport BetonQuestCinematicHook ItemsAdderUiBridge; do
+            echo "===== BEGIN $n ====="
+            p="$(find out -type f -name "$n.java" | head -1 || true)"
+            if [ -n "$p" ]; then cat "$p"; else echo "NOT FOUND"; fi
+            echo "===== END $n ====="
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: reputation-decompiled-audit
