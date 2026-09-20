@@ -1,0 +1,31 @@
+name: Lyrius 1.0.137 Bend Inspect From Audit
+on:
+  push:
+    branches: [build-1.0.137]
+    paths:
+      - '.github/workflows/lyrius-bend137-from-audit.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: lyrius-137-audit
+          path: audit-artifact
+          github-token: ${{ github.token }}
+          repository: Singapura7/lyrius-client-updates
+          run-id: '35542271338'
+      - name: Show bend sources
+        shell: bash
+        run: |
+          set -e
+          echo '=== CPM MIXIN CONFIG ==='
+          cat audit-artifact/current/lyriusrpmodplugin.cpm_emotecraft_bend_compat.mixins.json || true
+          for name in BendEntityScope BendRenderContext PlayerModelBendCapture CPMEmotecraftBendCompat RenderScopedBendSnapshot ThreadLocalVanillaBendRegistry PlayerModelBendCaptureMixin ModelPartBendMixin InventoryScreenPreviewGuardMixin; do
+            f=$(find audit-artifact/decomp/current -name "$name.java" -print -quit)
+            if [ -n "$f" ]; then echo "===== $name ====="; cat "$f"; fi
+          done
