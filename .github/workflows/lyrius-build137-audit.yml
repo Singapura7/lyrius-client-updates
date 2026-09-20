@@ -1,0 +1,81 @@
+name: Lyrius 1.0.137 Audit
+on:
+  push:
+    branches: [build-1.0.137]
+    paths:
+      - '.github/workflows/lyrius-build137-audit.yml'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download baselines
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-1084-820e-b592-0a7c5a3da9f6/raw?se=2026-09-20T22%3A42%3A23Z&sp=r&sv=2026-02-06&sr=b&scid=ed7cb7dd-396a-5daf-b548-4551c1794bf7&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-20T18%3A24%3A09Z&ske=2026-09-21T18%3A24%3A09Z&sks=b&skv=2026-02-06&sig=Khbt3Q/FAYMy0UE4fnIky5Ak2KR1rDphFDbQHq1Rinw%3D' -o base113.jar
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-2c88-820e-b54d-08d99f4193d2/raw?se=2026-09-20T22%3A42%3A26Z&sp=r&sv=2026-02-06&sr=b&scid=fc09ebe0-f344-566d-a325-e4c4d0d6af10&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-20T18%3A31%3A15Z&ske=2026-09-21T18%3A31%3A15Z&sks=b&skv=2026-02-06&sig=HBhl%2BoV3SY9czKk8YRHypCMTfv7LWlzm4hxt1Bl203I%3D' -o current136.jar
+          sha256sum base113.jar current136.jar
+          unzip -t base113.jar >/dev/null
+          unzip -t current136.jar >/dev/null
+      - name: Extract and audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit/base audit/current audit/decomp/base audit/decomp/current
+          unzip -q base113.jar -d audit/base
+          unzip -q current136.jar -d audit/current
+          echo '=== coreui 113 ===' | tee audit/report.txt
+          cat audit/base/lyriusclient.coreui.mixins.json 2>/dev/null | tee -a audit/report.txt || true
+          echo '=== coreui 136 ===' | tee -a audit/report.txt
+          cat audit/current/lyriusclient.coreui.mixins.json 2>/dev/null | tee -a audit/report.txt || true
+          echo '=== fabric 136 ===' | tee -a audit/report.txt
+          cat audit/current/fabric.mod.json | tee -a audit/report.txt
+          echo '=== CPM class diff ===' | tee -a audit/report.txt
+          (cd audit/base && find br/com/lyrius/cpmemote -type f -name '*.class' -print 2>/dev/null | sort) > audit/base-cpm.txt || true
+          (cd audit/current && find br/com/lyrius/cpmemote -type f -name '*.class' -print 2>/dev/null | sort) > audit/current-cpm.txt || true
+          diff -u audit/base-cpm.txt audit/current-cpm.txt | tee -a audit/report.txt || true
+          echo '=== CPM hashes base ===' | tee -a audit/report.txt
+          find audit/base/br/com/lyrius/cpmemote -type f -name '*.class' -print0 2>/dev/null | sort -z | xargs -0 sha256sum | tee audit/base-cpm-hashes.txt | tee -a audit/report.txt || true
+          echo '=== CPM hashes current ===' | tee -a audit/report.txt
+          find audit/current/br/com/lyrius/cpmemote -type f -name '*.class' -print0 2>/dev/null | sort -z | xargs -0 sha256sum | tee audit/current-cpm-hashes.txt | tee -a audit/report.txt || true
+          echo '=== GenericContainer classes ===' | tee -a audit/report.txt
+          find audit/base audit/current -path '*com/lyrius/client/mixin/*GenericContainer*.class' -print | tee -a audit/report.txt || true
+          echo '=== Core UI referenced classes existence ===' | tee -a audit/report.txt
+          python3 - <<'PY' | tee audit/mixin-validation.txt | tee -a audit/report.txt
+          import json, pathlib
+          for root in [pathlib.Path('audit/base'), pathlib.Path('audit/current')]:
+              print('ROOT',root)
+              for jf in root.glob('*.mixins.json'):
+                  try: d=json.loads(jf.read_text())
+                  except Exception as e:
+                      print('BADJSON',jf,e); continue
+                  pkg=d.get('package','')
+                  for sec in ('mixins','client','server'):
+                      for n in d.get(sec,[]) or []:
+                          p=root/('/'.join((pkg+'.'+n).split('.'))+'.class')
+                          print(jf.name,sec,n,'OK' if p.exists() else 'MISSING',p)
+          PY
+          curl -fL https://www.benf.org/other/cfr/cfr-0.152.jar -o cfr.jar
+          for c in             br.com.lyrius.cpmemote.CPMEmotecraftBendCompat             br.com.lyrius.cpmemote.BendyRedirectModelRendererVanilla             com.lyrius.client.mixin.GenericContainerScreenMixin             com.lyrius.client.mixin.GenericContainerThemeMixin             com.lyrius.client.mixin.LyriusExperienceColorMixin             com.lyrius.client.mixin.LyriusSplashLogoMixin; do
+              rel="${c//.//}.class"
+              if [ -f "audit/base/$rel" ]; then
+                java -jar cfr.jar "audit/base/$rel" --outputdir audit/decomp/base --silent true || true
+                javap -classpath base113.jar -p -c -v "$c" > "audit/${c##*.}.base.javap.txt" 2>&1 || true
+              fi
+              if [ -f "audit/current/$rel" ]; then
+                java -jar cfr.jar "audit/current/$rel" --outputdir audit/decomp/current --silent true || true
+                javap -classpath current136.jar -p -c -v "$c" > "audit/${c##*.}.current.javap.txt" 2>&1 || true
+              fi
+          done
+      - name: Print report
+        run: cat audit/report.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lyrius-137-audit
+          path: audit
+          if-no-files-found: error
