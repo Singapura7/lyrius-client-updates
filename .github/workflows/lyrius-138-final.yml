@@ -123,6 +123,15 @@ jobs:
             (cd work/$profile && jar --create --file "../../$out" .)
             unzip -t "$out" >/dev/null
           done
+          PASS='Lyrius138-Recovery-Internal'
+          keytool -genkeypair -alias lyrius-release-138 -keyalg RSA -keysize 3072 -sigalg SHA384withRSA -validity 3650 -dname "CN=Lyrius RP Made It Release 1.0.138 Recovery, OU=Lyrius RP, O=Lyrius RP, L=Brazil, C=BR" -storetype PKCS12 -keystore recovery138.p12 -storepass "$PASS" -keypass "$PASS" >/dev/null 2>&1
+          for profile in STAFF PLAYERS; do
+            jar="dist/client/Lyrius-RP-Made-It-1.0.138-$profile-RC.jar"
+            jarsigner -keystore recovery138.p12 -storetype PKCS12 -storepass "$PASS" -keypass "$PASS" -sigalg SHA384withRSA -digestalg SHA-384 "$jar" lyrius-release-138 >/dev/null
+            jarsigner -verify "$jar" > "dist/docs/JARSIGNER-$profile.txt" 2>&1
+          done
+          keytool -exportcert -rfc -alias lyrius-release-138 -keystore recovery138.p12 -storetype PKCS12 -storepass "$PASS" > dist/docs/lyrius-release-1.0.138-recovery-public.pem
+          rm -f recovery138.p12
           cp reputation118.jar dist/server/
           cp servermerge118.zip dist/server/
           cp LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip dist/itemsadder/
