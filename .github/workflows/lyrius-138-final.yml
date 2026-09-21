@@ -1,0 +1,179 @@
+name: Build Lyrius 1.0.138 Hotfix
+on:
+  push:
+    branches: [build-1.0.137]
+    paths:
+      - '.github/workflows/lyrius-138-final.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-72dc-820e-a5da-f92fa086dd67/raw?se=2026-09-21T00%3A59%3A03Z&sp=r&sv=2026-02-06&sr=b&scid=9f70797c-effd-5678-96eb-5550d025bcf2&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-20T11%3A03%3A29Z&ske=2026-09-21T11%3A03%3A29Z&sks=b&skv=2026-02-06&sig=/WpElE0r2WokTas8YjX4jLcTYn9z3j72k%2BVuCQWdaXM%3D' -o package137.zip
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-8a78-820e-85a3-7a54f6fa893a/raw?se=2026-09-21T00%3A59%3A04Z&sp=r&sv=2026-02-06&sr=b&scid=399b996a-2037-570d-9ef7-39990f28e4b2&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-20T09%3A55%3A39Z&ske=2026-09-21T09%3A55%3A39Z&sks=b&skv=2026-02-06&sig=5Hi55byE7bf2Q85XbsOldfyD4xxh6BQL84HJHaq8qUU%3D' -o ia135.zip
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-ecd4-820e-a811-7e1c1bb255e2/raw?se=2026-09-21T00%3A59%3A09Z&sp=r&sv=2026-02-06&sr=b&scid=064ad32e-b036-5fe6-bb35-f1bd7b85ba31&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-20T16%3A26%3A07Z&ske=2026-09-21T16%3A26%3A07Z&sks=b&skv=2026-02-06&sig=gGbQNjopzkfK7/hjuN956rtuGGgmhe5THz9kquuxDao%3D' -o staff120.jar
+          unzip -q package137.zip -d pkg137
+          unzip -q staff120.jar -d s120
+          cp pkg137/dist/client/Lyrius-RP-Made-It-1.0.137-STAFF-SIGNED-RC.jar staff137.jar
+          cp pkg137/dist/client/Lyrius-RP-Made-It-1.0.137-PLAYERS-SIGNED-RC.jar players137.jar
+          cp pkg137/dist/server/LyriusReputation-0.15.2-1.0.118-FINAL.jar reputation118.jar
+          cp pkg137/dist/server/LYRIUS-SERVER-REPUTATION-1.0.118-HOBBIES-FINAL-MERGE.zip servermerge118.zip
+          cp pkg137/dist/itemsadder/LYRIUS-ITEMSADDER-1.0.137-REPUTATION-EXCALIBUR-IMMERSIVE-1.21.4-SAFE-MERGE.zip ia137.zip
+      - name: Build clients
+        shell: bash
+        run: |
+          set -euo pipefail
+          for profile in staff players; do
+            mkdir -p work/$profile
+            unzip -q "$profile"137.jar -d work/$profile
+            rm -f work/$profile/META-INF/*.SF work/$profile/META-INF/*.RSA work/$profile/META-INF/*.DSA work/$profile/META-INF/*.EC
+            cp s120/com/lyrius/client/mixin/GenericContainerScreenMixin.class work/$profile/com/lyrius/client/mixin/
+            cp s120/com/lyrius/client/mixin/LyriusExperienceColorMixin.class work/$profile/com/lyrius/client/mixin/
+            if [ -f s120/assets/minecraft/textures/gui/title/mojangstudios.png ]; then
+              mkdir -p work/$profile/assets/minecraft/textures/gui/title
+              cp s120/assets/minecraft/textures/gui/title/mojangstudios.png work/$profile/assets/minecraft/textures/gui/title/
+            fi
+            PROFILE="$profile" python3 - <<'PY'
+          import json, os, pathlib
+          root=pathlib.Path("work")/os.environ["PROFILE"]
+          for p in root.rglob("*"):
+              if p.is_file():
+                  b=p.read_bytes()
+                  if b"1.0.137" in b:
+                      p.write_bytes(b.replace(b"1.0.137",b"1.0.138"))
+          p=root/"lyriusclient.client.mixins.json"; d=json.loads(p.read_text())
+          remove={"SelectiveImmersiveDrawContextMixin","LyriusExperienceColorMixin","LyriusSplashLogoMixin","GenericContainerScreenMixin"}
+          client=[x for x in d.get("client",[]) if x not in remove]
+          client.insert(0,"GenericContainerScreenMixin")
+          client.append("LyriusExperienceColorMixin")
+          d["client"]=client
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+          p=root/"lyriusclient.coreui.mixins.json"; d=json.loads(p.read_text())
+          remove={"LyriusGuiTextureRouterMixin","GenericContainerThemeMixin","LyriusExperienceColorMixin","LyriusExperienceColor137Mixin"}
+          d["client"]=[x for x in d.get("client",[]) if x not in remove]
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+          p=root/"fabric.mod.json"; d=json.loads(p.read_text()); d["version"]="1.0.138"
+          d["description"]="Lyrius RP Made It 1.0.138: restaura REPADMIN bordado e XP ciano da linha funcional 1.0.120, preservando bend/hotbar/ESC 1.0.137; Immersive global removido do ItemsAdder por rollback seletivo."
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+          PY
+          done
+      - name: Build selective ItemsAdder rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir ia135 ia137 rollback
+          unzip -q ia135.zip -d ia135
+          unzip -q ia137.zip -d ia137
+          BASE_EX=$(find ia135 -type d -name Lyrius_Excalibur -print -quit)
+          BAD_EX=$(find ia137 -type d -name Lyrius_Excalibur -print -quit)
+          BASE_EX="$BASE_EX" BAD_EX="$BAD_EX" python3 - <<'PY'
+          import os,pathlib,hashlib,shutil
+          base=pathlib.Path(os.environ["BASE_EX"]); bad=pathlib.Path(os.environ["BAD_EX"])
+          out=pathlib.Path("rollback"); payload=out/"payload"/"contents"/"Lyrius_Excalibur"; payload.mkdir(parents=True,exist_ok=True)
+          def files(root): return {p.relative_to(root):p for p in root.rglob("*") if p.is_file()}
+          bf,xf=files(base),files(bad); changed=[]; added=[]; missing=[]
+          for rel,p in xf.items():
+              if rel not in bf: added.append(rel)
+              elif hashlib.sha256(p.read_bytes()).digest()!=hashlib.sha256(bf[rel].read_bytes()).digest():
+                  changed.append(rel); q=payload/rel; q.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(bf[rel],q)
+          for rel in set(bf)-set(xf):
+              missing.append(rel); q=payload/rel; q.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(bf[rel],q)
+          fmt=lambda x:"contents/Lyrius_Excalibur/"+str(x).replace("\\","/")
+          (out/"DELETE-137-ONLY.txt").write_text("\n".join(map(fmt,sorted(added,key=str)))+"\n")
+          (out/"RESTORE-FROM-135.txt").write_text("\n".join(map(fmt,sorted(changed+missing,key=str)))+"\n")
+          (out/"DIFF-SUMMARY.txt").write_text(f"restore_changed={len(changed)}\nremove_137_only={len(added)}\nrestore_missing={len(missing)}\n")
+          PY
+          cat > rollback/APLICAR-ROLLBACK-ITEMSADDER-1.0.138.sh <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          ROOT="$1"; HERE="$(cd "$(dirname "$0")" && pwd)"; TS="$(date +%Y%m%d-%H%M%S)"
+          [ -d "$ROOT/contents/Lyrius_Excalibur" ] || { echo "Passe a pasta plugins/ItemsAdder"; exit 2; }
+          BACK="$ROOT/backups/lyrius-1.0.138-excalibur-$TS"; mkdir -p "$BACK"
+          while IFS= read -r rel; do
+            [ -z "$rel" ] && continue
+            if [ -f "$ROOT/$rel" ]; then mkdir -p "$BACK/$(dirname "$rel")"; cp -p "$ROOT/$rel" "$BACK/$rel"; rm -f "$ROOT/$rel"; fi
+          done < "$HERE/DELETE-137-ONLY.txt"
+          while IFS= read -r rel; do
+            [ -z "$rel" ] && continue
+            if [ -f "$ROOT/$rel" ]; then mkdir -p "$BACK/$(dirname "$rel")"; cp -p "$ROOT/$rel" "$BACK/$rel"; fi
+          done < "$HERE/RESTORE-FROM-135.txt"
+          cp -a "$HERE/payload/contents/Lyrius_Excalibur/." "$ROOT/contents/Lyrius_Excalibur/"
+          echo "Rollback aplicado. Backup: $BACK"
+          SH
+          chmod +x rollback/APLICAR-ROLLBACK-ITEMSADDER-1.0.138.sh
+          printf '%s\n' "Rollback seletivo 1.0.137 -> base 1.0.135." "Não contém Staff_Guespper ou Lyrius_Atelie." > rollback/LEIA-ME.txt
+          (cd rollback && zip -qr ../LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip .)
+          cat rollback/DIFF-SUMMARY.txt
+      - name: Package and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/client dist/server dist/itemsadder dist/docs
+          for profile in staff players; do
+            rm -f work/$profile/META-INF/MANIFEST.MF
+            out="dist/client/Lyrius-RP-Made-It-1.0.138-$(echo $profile | tr a-z A-Z)-RC.jar"
+            (cd work/$profile && jar --create --file "../../$out" .)
+            unzip -t "$out" >/dev/null
+          done
+          cp reputation118.jar dist/server/
+          cp servermerge118.zip dist/server/
+          cp LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip dist/itemsadder/
+          python3 - <<'PY'
+          import zipfile,json,hashlib,pathlib
+          base=zipfile.ZipFile('staff137.jar'); new=zipfile.ZipFile('dist/client/Lyrius-RP-Made-It-1.0.138-STAFF-RC.jar')
+          def h(z,n): return hashlib.sha256(z.read(n)).hexdigest()
+          frozen=['com/lyrius/client/mixin/LyriusHotbarSelectionMixin.class','META-INF/jars/lyriusrpmod-1.21.4-0.3.17.jar']
+          for prefix in ['com/lyrius/client/pause/','com/lyrius/client/crimsonrain/','com/lyrius/client/grimorio/','com/lyrius/client/visual/','br/com/lyrius/cpmemote/']:
+              frozen += [n for n in base.namelist() if n.startswith(prefix) and n.endswith('.class')]
+          bad=[n for n in set(frozen) if n not in new.namelist() or h(base,n)!=h(new,n)]
+          assert not bad, bad
+          for jar in pathlib.Path('dist/client').glob('*.jar'):
+              with zipfile.ZipFile(jar) as z:
+                  fm=json.loads(z.read('fabric.mod.json')); assert fm['version']=='1.0.138'
+                  names=set(z.namelist())
+                  for cfg in fm.get('mixins',[]):
+                      d=json.loads(z.read(cfg)); pkg=d.get('package','')
+                      for sec in ('mixins','client','server'):
+                          for c in d.get(sec,[]) or []:
+                              assert (pkg+'.'+c).replace('.','/')+'.class' in names,(cfg,c)
+                  assert 'GenericContainerScreenMixin' in z.read('lyriusclient.client.mixins.json').decode()
+                  assert 'LyriusExperienceColorMixin' in z.read('lyriusclient.client.mixins.json').decode()
+                  assert 'SelectiveImmersiveDrawContextMixin' not in z.read('lyriusclient.client.mixins.json').decode()
+                  assert 'LyriusGuiTextureRouterMixin' not in z.read('lyriusclient.coreui.mixins.json').decode()
+          with zipfile.ZipFile('dist/itemsadder/LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip') as z:
+              assert not any('Staff_Guespper' in n or 'Lyrius_Atelie' in n for n in z.namelist())
+          print("LYRIUS 1.0.138 GATES PASS")
+          PY
+          cp rollback/DIFF-SUMMARY.txt dist/docs/ITEMSADDER-DIFF.txt
+          cat > dist/docs/LEIA-ME.md <<'EOF'
+          # Lyrius 1.0.138 RC
+          Corrige a regressão visual da 1.0.137.
+          - REPADMIN: renderer bordado antigo restaurado da linha funcional 1.0.120.
+          - XP: mixin nativo ciano restaurado da linha funcional 1.0.120.
+          - ItemsAdder: rollback seletivo calculado entre a base 1.0.135 e o merge 1.0.137. Não substitui Lyrius_Excalibur inteira.
+          - Não contém Staff_Guespper nem Lyrius_Atelie.
+          - Bend, hotbar, ESC, Crimson, Grimório e Visual permanecem byte-idênticos à 1.0.137.
+          Instalação ItemsAdder: servidor desligado, execute APLICAR-ROLLBACK-ITEMSADDER-1.0.138.sh /caminho/plugins/ItemsAdder, ligue, /iareload, /iazip e reconecte.
+          Cliente: remova 1.0.137 e use STAFF 1.0.138 RC primeiro.
+          Servidor: use LyriusReputation 1.0.118 por restart completo.
+          EOF
+          (cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          zip -qr LYRIUS-RP-1.0.138-HOTFIX-RC.zip dist
+          sha256sum LYRIUS-RP-1.0.138-HOTFIX-RC.zip > FULL-SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LYRIUS-RP-1.0.138-HOTFIX-RC
+          path: |
+            dist
+            LYRIUS-RP-1.0.138-HOTFIX-RC.zip
+            FULL-SHA256.txt
+          if-no-files-found: error
+          retention-days: 30
