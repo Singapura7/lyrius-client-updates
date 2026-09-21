@@ -1,0 +1,451 @@
+name: Build Lyrius 1.0.138 Final RC
+on:
+  push:
+    branches: [build-1.0.137]
+    paths:
+      - '.github/workflows/lyrius-138-final.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download 1.0.137 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: LYRIUS-RP-1.0.137-FINAL-CANDIDATE
+          path: input137
+          github-token: ${{ github.token }}
+          repository: Singapura7/lyrius-client-updates
+          run-id: '35545945045'
+      - name: Prepare authoritative inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp input137/dist/client/Lyrius-RP-Made-It-1.0.137-STAFF-SIGNED-RC.jar staff137.jar
+          cp input137/dist/client/Lyrius-RP-Made-It-1.0.137-PLAYERS-SIGNED-RC.jar players137.jar
+          cp input137/dist/server/LyriusReputation-0.15.2-1.0.118-FINAL.jar reputation118.jar
+          cp input137/dist/server/LYRIUS-SERVER-REPUTATION-1.0.118-HOBBIES-FINAL-MERGE.zip servermerge118.zip
+          cp input137/dist/itemsadder/LYRIUS-ITEMSADDER-1.0.137-REPUTATION-EXCALIBUR-IMMERSIVE-1.21.4-SAFE-MERGE.zip ia137.zip
+          cp build-inputs/LYRIUS-ITEMSADDER-1.0.135-REPUTATION-EXCALIBUR-SAFE-MERGE.zip ia135.zip
+          unzip -t staff137.jar >/dev/null
+          unzip -t players137.jar >/dev/null
+          unzip -t ia135.zip >/dev/null
+          unzip -t ia137.zip >/dev/null
+          sha256sum staff137.jar players137.jar ia135.zip ia137.zip
+
+      - name: Prepare compile dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://maven.fabricmc.net/net/fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/sponge-mixin-0.17.3+mixin.0.8.7.jar' -o mixin.jar
+          curl -fL 'https://repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar' -o asm.jar
+
+      - name: Compile corrected CoreUI mixins
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf src138 stubs stubclasses patchclasses
+          mkdir -p src138/com/lyrius/client/mixin stubs/net/minecraft patchclasses
+          cat > stubs/net/minecraft/class_2561.java <<'JAVA'
+          package net.minecraft;
+          public interface class_2561 { String getString(); }
+          JAVA
+          cat > stubs/net/minecraft/class_1041.java <<'JAVA'
+          package net.minecraft;
+          public class class_1041 {
+            public int method_4486(){ return 0; }
+            public int method_4502(){ return 0; }
+          }
+          JAVA
+          cat > stubs/net/minecraft/class_310.java <<'JAVA'
+          package net.minecraft;
+          public class class_310 {
+            public static class_310 method_1551(){ return null; }
+            public class_1041 method_22683(){ return null; }
+          }
+          JAVA
+          cat > stubs/net/minecraft/class_332.java <<'JAVA'
+          package net.minecraft;
+          public class class_332 {
+            public void method_25294(int a,int b,int c,int d,int e){}
+          }
+          JAVA
+          cat > stubs/net/minecraft/class_476.java <<'JAVA'
+          package net.minecraft;
+          public class class_476 {
+            public class_2561 method_25440(){ return null; }
+          }
+          JAVA
+          cat > stubs/net/minecraft/class_329.java <<'JAVA'
+          package net.minecraft; public class class_329 {}
+          JAVA
+          cat > stubs/net/minecraft/class_9779.java <<'JAVA'
+          package net.minecraft; public class class_9779 {}
+          JAVA
+          cat > stubs/net/minecraft/class_425.java <<'JAVA'
+          package net.minecraft; public class class_425 {}
+          JAVA
+          cat > stubs/net/minecraft/class_2960.java <<'JAVA'
+          package net.minecraft;
+          public class class_2960 {
+            public static class_2960 method_60655(String namespace,String path){ return null; }
+          }
+          JAVA
+          javac -d stubclasses stubs/net/minecraft/*.java
+
+          cat > src138/com/lyrius/client/mixin/GenericContainerScreen138Mixin.java <<'JAVA'
+          package com.lyrius.client.mixin;
+          import com.lyrius.client.state.LyriusState;
+          import com.lyrius.client.ui.MedievalUi;
+          import net.minecraft.class_310;
+          import net.minecraft.class_332;
+          import net.minecraft.class_476;
+          import org.spongepowered.asm.mixin.Mixin;
+          import org.spongepowered.asm.mixin.injection.At;
+          import org.spongepowered.asm.mixin.injection.Inject;
+          import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+          @Mixin(value=class_476.class, remap=false, priority=3000)
+          public abstract class GenericContainerScreen138Mixin {
+            private static final String REPADMIN_TITLE = "Lyrius · Administração";
+            private static final int FALLBACK_ACCENT = 0xFFE89D5F;
+
+            @Inject(
+              method="method_2389(Lnet/minecraft/class_332;FII)V",
+              at=@At(value="HEAD", remap=false),
+              cancellable=true, require=1, remap=false
+            )
+            private void lyrius$drawRepAdmin(class_332 context,float delta,int mouseX,int mouseY,CallbackInfo ci){
+              String theme=LyriusState.theme;
+              boolean stateTheme=theme!=null && !theme.isBlank();
+              String title=((class_476)(Object)this).method_25440().getString();
+              boolean exactFallback=REPADMIN_TITLE.equals(title);
+              if(!stateTheme && !exactFallback) return;
+
+              int rows=stateTheme ? Math.max(1,Math.min(6,LyriusState.themeRows)) : 6;
+              int accent=stateTheme ? LyriusState.themeAccent : FALLBACK_ACCENT;
+              int headSlot=stateTheme ? LyriusState.themeHeadSlot : -1;
+
+              class_310 mc=class_310.method_1551();
+              if(mc==null || mc.method_22683()==null) return;
+              int screenWidth=mc.method_22683().method_4486();
+              int screenHeight=mc.method_22683().method_4502();
+              int backgroundWidth=176;
+              int backgroundHeight=114+rows*18;
+              int x=(screenWidth-backgroundWidth)/2;
+              int y=(screenHeight-backgroundHeight)/2;
+
+              MedievalUi.panel(context,x,y,backgroundWidth,backgroundHeight,accent);
+              for(int row=0;row<rows;row++){
+                for(int col=0;col<9;col++){
+                  int sx=x+7+col*18, sy=y+18+row*18;
+                  context.method_25294(sx,sy,sx+18,sy+18,0xAA16110D);
+                  int slot=row*9+col;
+                  MedievalUi.border(context,sx,sy,18,18,slot==headSlot?accent:0xFF5C4528);
+                  if(slot==headSlot) MedievalUi.border(context,sx-1,sy-1,20,20,accent);
+                }
+              }
+              int inventoryY=y+31+rows*18;
+              for(int row=0;row<3;row++) for(int col=0;col<9;col++) slot(context,x+7+col*18,inventoryY+row*18);
+              for(int col=0;col<9;col++) slot(context,x+7+col*18,inventoryY+58);
+              ci.cancel();
+            }
+            private static void slot(class_332 context,int x,int y){
+              context.method_25294(x,y,x+18,y+18,0xAA16110D);
+              MedievalUi.border(context,x,y,18,18,0xFF5C4528);
+            }
+          }
+          JAVA
+
+          cat > src138/com/lyrius/client/mixin/LyriusExperienceColor138Mixin.java <<'JAVA'
+          package com.lyrius.client.mixin;
+          import net.minecraft.class_329;
+          import org.spongepowered.asm.mixin.Mixin;
+          import org.spongepowered.asm.mixin.injection.Constant;
+          import org.spongepowered.asm.mixin.injection.ModifyConstant;
+
+          @Mixin(value=class_329.class, remap=false, priority=3000)
+          public abstract class LyriusExperienceColor138Mixin {
+            @ModifyConstant(
+              method="method_56136(Lnet/minecraft/class_332;Lnet/minecraft/class_9779;)V",
+              constant=@Constant(intValue=8453920),
+              require=1, remap=false
+            )
+            private int lyrius$cyanNativeExperience(int original){
+              return 0x35C4D5;
+            }
+          }
+          JAVA
+
+          cat > src138/com/lyrius/client/mixin/LyriusSplashLogo138Mixin.java <<'JAVA'
+          package com.lyrius.client.mixin;
+          import net.minecraft.class_2960;
+          import net.minecraft.class_425;
+          import org.objectweb.asm.Opcodes;
+          import org.spongepowered.asm.mixin.Mixin;
+          import org.spongepowered.asm.mixin.injection.At;
+          import org.spongepowered.asm.mixin.injection.Redirect;
+
+          @Mixin(value=class_425.class, remap=false, priority=3000)
+          public abstract class LyriusSplashLogo138Mixin {
+            @Redirect(
+              method="method_25394(Lnet/minecraft/class_332;IIF)V",
+              at=@At(
+                value="FIELD",
+                target="Lnet/minecraft/class_425;field_2483:Lnet/minecraft/class_2960;",
+                opcode=Opcodes.GETSTATIC,
+                remap=false
+              ),
+              require=1, remap=false
+            )
+            private class_2960 lyrius$privateLogo(){
+              return class_2960.method_60655("lyriusrpmodplugin","textures/gui/title/lyrius.png");
+            }
+          }
+          JAVA
+
+          javac -cp "staff137.jar:stubclasses:mixin.jar:asm.jar" -d patchclasses             src138/com/lyrius/client/mixin/GenericContainerScreen138Mixin.java             src138/com/lyrius/client/mixin/LyriusExperienceColor138Mixin.java             src138/com/lyrius/client/mixin/LyriusSplashLogo138Mixin.java
+
+      - name: Assemble 1.0.138 STAFF and PLAYERS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for profile in staff players; do
+            mkdir -p work/$profile
+            unzip -q "${profile}137.jar" -d work/$profile
+            rm -f work/$profile/META-INF/*.SF work/$profile/META-INF/*.RSA work/$profile/META-INF/*.DSA work/$profile/META-INF/*.EC
+            cp patchclasses/com/lyrius/client/mixin/*.class work/$profile/com/lyrius/client/mixin/
+            PROFILE="$profile" python3 - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path("work")/os.environ["PROFILE"]
+          for p in root.rglob("*"):
+              if p.is_file():
+                  b=p.read_bytes()
+                  if b"1.0.137" in b: p.write_bytes(b.replace(b"1.0.137",b"1.0.138"))
+          p=root/"lyriusclient.client.mixins.json"; d=json.loads(p.read_text())
+          d["client"]=[x for x in d.get("client",[]) if x not in (
+            "GenericContainerScreenMixin","GenericContainerThemeMixin",
+            "SelectiveImmersiveDrawContextMixin","GenericContainerScreen138Mixin",
+            "LyriusExperienceColorMixin","LyriusSplashLogoMixin")]
+          d["client"].insert(0,"GenericContainerScreen138Mixin")
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+          p=root/"lyriusclient.coreui.mixins.json"; d=json.loads(p.read_text())
+          d["client"]=[x for x in d.get("client",[]) if x not in (
+            "GenericContainerScreenMixin","GenericContainerThemeMixin","LyriusGuiTextureRouterMixin",
+            "LyriusExperienceColorMixin","LyriusExperienceColor137Mixin","LyriusExperienceColor138Mixin",
+            "LyriusSplashLogoMixin","LyriusSplashLogo138Mixin")]
+          pos=d["client"].index("LyriusHotbarSelectionMixin")+1 if "LyriusHotbarSelectionMixin" in d["client"] else 0
+          d["client"][pos:pos]=["LyriusExperienceColor138Mixin","LyriusSplashLogo138Mixin"]
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+          p=root/"fabric.mod.json"; d=json.loads(p.read_text())
+          d["version"]="1.0.138"
+          d["description"]="Lyrius RP Made It 1.0.138: Excalibur rollback-safe, REPADMIN bordado com fallback exato, XP cyan RGB nativo, splash Lyrius privado; bend/hotbar/ESC 1.0.137 preservados."
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+          PY
+          done
+
+      - name: Build deterministic Excalibur rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf ia135 ia137 rollback
+          mkdir ia135 ia137 rollback
+          unzip -q ia135.zip -d ia135
+          unzip -q ia137.zip -d ia137
+          BASE_EX=$(find ia135 -type d -name Lyrius_Excalibur -print -quit)
+          BAD_EX=$(find ia137 -type d -name Lyrius_Excalibur -print -quit)
+          test -n "$BASE_EX"; test -n "$BAD_EX"
+          BASE_EX="$BASE_EX" BAD_EX="$BAD_EX" python3 - <<'PY'
+          import os,pathlib,hashlib,shutil
+          base=pathlib.Path(os.environ["BASE_EX"]); bad=pathlib.Path(os.environ["BAD_EX"])
+          out=pathlib.Path("rollback"); payload=out/"payload"/"contents"/"Lyrius_Excalibur"; payload.mkdir(parents=True,exist_ok=True)
+          def fs(root): return {p.relative_to(root):p for p in root.rglob("*") if p.is_file()}
+          bf,xf=fs(base),fs(bad); changed=[]; added=[]; missing=[]
+          for rel,p in xf.items():
+              if rel not in bf: added.append(rel)
+              elif hashlib.sha256(p.read_bytes()).digest()!=hashlib.sha256(bf[rel].read_bytes()).digest():
+                  changed.append(rel)
+          missing=list(set(bf)-set(xf))
+          for rel in sorted(changed+missing,key=str):
+              q=payload/rel; q.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(bf[rel],q)
+          fmt=lambda r:"contents/Lyrius_Excalibur/"+str(r).replace("\\","/")
+          (out/"DELETE-137-ONLY.txt").write_text("\n".join(fmt(x) for x in sorted(added,key=str))+"\n")
+          (out/"RESTORE-FROM-135.txt").write_text("\n".join(fmt(x) for x in sorted(changed+missing,key=str))+"\n")
+          (out/"DIFF-SUMMARY.txt").write_text(
+              f"Autoridade: SAFE MERGE 1.0.135\n"
+              f"Arquivos 1.0.137 modificados a restaurar: {len(changed)}\n"
+              f"Arquivos criados somente pela 1.0.137 a remover: {len(added)}\n"
+              f"Arquivos da base ausentes na 1.0.137 a restaurar: {len(missing)}\n")
+          PY
+          cat > rollback/APLICAR-ROLLBACK-ITEMSADDER-1.0.138.sh <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          ROOT="${1:-.}"
+          if [ ! -d "$ROOT/contents/Lyrius_Excalibur" ]; then echo "Passe a pasta plugins/ItemsAdder."; exit 2; fi
+          HERE="$(cd "$(dirname "$0")" && pwd)"; TS="$(date +%Y%m%d-%H%M%S)"
+          BACK="$ROOT/backups/lyrius-1.0.138-excalibur-$TS"; mkdir -p "$BACK"
+          backup(){ rel="$1"; if [ -f "$ROOT/$rel" ]; then mkdir -p "$BACK/$(dirname "$rel")"; cp -p "$ROOT/$rel" "$BACK/$rel"; fi; }
+          while IFS= read -r rel; do [ -z "$rel" ] && continue; backup "$rel"; rm -f "$ROOT/$rel"; done < "$HERE/DELETE-137-ONLY.txt"
+          while IFS= read -r rel; do [ -z "$rel" ] && continue; backup "$rel"; done < "$HERE/RESTORE-FROM-135.txt"
+          cp -a "$HERE/payload/contents/Lyrius_Excalibur/." "$ROOT/contents/Lyrius_Excalibur/"
+          echo "Rollback aplicado. Backup: $BACK"
+          echo "Depois: /iareload ; /iazip ; reconectar."
+          SH
+          chmod +x rollback/APLICAR-ROLLBACK-ITEMSADDER-1.0.138.sh
+          cat > rollback/LEIA-ME.txt <<'EOF'
+          Este pacote NÃO substitui Lyrius_Excalibur inteira.
+          Ele desfaz apenas o diff introduzido pela 1.0.137 contra a base 1.0.135.
+          Não contém Staff_Guespper, Lyrius_Atelie ou outros namespaces.
+          Aplique com o servidor desligado.
+          EOF
+          (cd rollback && zip -qr ../LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip .)
+          cat rollback/DIFF-SUMMARY.txt
+
+      - name: Package and sign
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist && mkdir -p dist/client dist/server dist/itemsadder dist/source dist/docs
+          for profile in staff players; do
+            rm -f work/$profile/META-INF/MANIFEST.MF
+            out="dist/client/Lyrius-RP-Made-It-1.0.138-$(echo $profile|tr a-z A-Z)-UNSIGNED.jar"
+            (cd work/$profile && jar --create --file "../../$out" .)
+          done
+          cp reputation118.jar dist/server/LyriusReputation-0.15.2-1.0.118-FINAL.jar
+          cp servermerge118.zip dist/server/LYRIUS-SERVER-REPUTATION-1.0.118-HOBBIES-FINAL-MERGE.zip
+          cp LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip dist/itemsadder/
+          cp -a src138 dist/source/java
+          cp .github/workflows/lyrius-138-final.yml dist/source/BUILD-WORKFLOW-1.0.138.yml
+
+          PASS='Lyrius138-Recovery-Internal'
+          keytool -genkeypair -alias lyrius-release-138 -keyalg RSA -keysize 3072 -sigalg SHA384withRSA -validity 3650             -dname "CN=Lyrius RP Made It Release 1.0.138 Recovery, OU=Lyrius RP, O=Lyrius RP, L=Brazil, C=BR"             -storetype PKCS12 -keystore recovery.p12 -storepass "$PASS" -keypass "$PASS" >/dev/null 2>&1
+          for profile in STAFF PLAYERS; do
+            in="dist/client/Lyrius-RP-Made-It-1.0.138-$profile-UNSIGNED.jar"
+            out="dist/client/Lyrius-RP-Made-It-1.0.138-$profile-SIGNED-RC.jar"
+            cp "$in" "$out"
+            jarsigner -keystore recovery.p12 -storetype PKCS12 -storepass "$PASS" -keypass "$PASS"               -sigalg SHA384withRSA -digestalg SHA-384 "$out" lyrius-release-138 >/dev/null
+          done
+          keytool -exportcert -rfc -alias lyrius-release-138 -keystore recovery.p12 -storetype PKCS12 -storepass "$PASS" > dist/docs/lyrius-release-1.0.138-recovery-public.pem
+          rm -f recovery.p12
+
+      - name: Hard validation gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import zipfile,json,hashlib,pathlib
+          base=zipfile.ZipFile('staff137.jar'); new=zipfile.ZipFile('dist/client/Lyrius-RP-Made-It-1.0.138-STAFF-SIGNED-RC.jar')
+          def h(z,n): return hashlib.sha256(z.read(n)).hexdigest()
+          frozen=['com/lyrius/client/mixin/LyriusHotbarSelectionMixin.class','META-INF/jars/lyriusrpmod-1.21.4-0.3.17.jar']
+          for prefix in ['com/lyrius/client/pause/','com/lyrius/client/crimsonrain/','com/lyrius/client/grimorio/','com/lyrius/client/visual/','br/com/lyrius/cpmemote/']:
+              frozen += [n for n in base.namelist() if n.startswith(prefix) and n.endswith('.class')]
+          bad=[n for n in sorted(set(frozen)) if n not in new.namelist() or h(base,n)!=h(new,n)]
+          assert not bad, "FROZEN REGRESSION\n" + "\n".join(bad)
+          for jar in pathlib.Path('dist/client').glob('*SIGNED-RC.jar'):
+            with zipfile.ZipFile(jar) as z:
+              names=set(z.namelist()); fm=json.loads(z.read('fabric.mod.json')); assert fm['version']=='1.0.138'
+              for cfg in fm.get('mixins',[]):
+                d=json.loads(z.read(cfg)); pkg=d.get('package','')
+                for sec in ('mixins','client','server'):
+                  for c in d.get(sec,[]) or []:
+                    p=(pkg+'.'+c).replace('.','/')+'.class'; assert p in names,(cfg,p)
+              client=z.read('lyriusclient.client.mixins.json').decode(); core=z.read('lyriusclient.coreui.mixins.json').decode()
+              assert 'GenericContainerScreen138Mixin' in client
+              assert 'SelectiveImmersiveDrawContextMixin' not in client
+              assert 'GenericContainerThemeMixin' not in core and 'LyriusGuiTextureRouterMixin' not in core
+              assert 'LyriusExperienceColor138Mixin' in core and 'LyriusSplashLogo138Mixin' in core
+              assert 'assets/lyriusrpmodplugin/textures/gui/title/lyrius.png' in names
+          with zipfile.ZipFile('dist/itemsadder/LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip') as z:
+              names=z.namelist()
+              assert not any('Staff_Guespper' in n or 'Lyrius_Atelie' in n for n in names)
+              payload=[n for n in names if n.startswith('payload/contents/') and not n.endswith('/')]
+              assert all(n.startswith('payload/contents/Lyrius_Excalibur/') for n in payload)
+          print('LYRIUS 1.0.138 HARD GATES: PASS')
+          PY
+          unzip -t dist/itemsadder/LYRIUS-ITEMSADDER-1.0.138-EXCALIBUR-ROLLBACK-SELETIVO.zip >/dev/null
+          jarsigner -verify dist/client/Lyrius-RP-Made-It-1.0.138-STAFF-SIGNED-RC.jar | tee dist/docs/JARSIGNER-STAFF.txt
+          jarsigner -verify dist/client/Lyrius-RP-Made-It-1.0.138-PLAYERS-SIGNED-RC.jar | tee dist/docs/JARSIGNER-PLAYERS.txt
+
+      - name: Documentation and hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp rollback/DIFF-SUMMARY.txt dist/docs/ITEMSADDER-ROLLBACK-DIFF.txt
+          cat > dist/docs/DIAGNOSTICO.md <<'EOF'
+          # Diagnóstico 1.0.138
+          A 1.0.137 escreveu backgrounds, sprites, recipe book e shaders do Immersive em Lyrius_Excalibur; /iazip compilou isso como resource pack do servidor e a base Excalibur foi visualmente substituída.
+          O texto de XP vanilla usa RGB 24-bit 0x80FF20. A 1.0.137 devolvia ARGB 0xFF35C4D5; a 1.0.138 altera a constante nativa para RGB 0x35C4D5.
+          O REPADMIN perdeu o renderer bordado. A 1.0.138 desenha o mesmo painel/slots por estado SCREEN_THEME ou, como compatibilidade com o servidor 1.0.109 ainda observado, apenas quando o título é exatamente Lyrius · Administração.
+          O splash redireciona SplashOverlay.LOGO diretamente para o namespace privado lyriusrpmodplugin.
+          Bend, hotbar e ESC da 1.0.137 foram congelados.
+          EOF
+          cat > dist/docs/CORRECAO-APLICADA.md <<'EOF'
+          # Correção aplicada
+          ItemsAdder: rollback calculado por diferença real entre o SAFE MERGE 1.0.135 e o 1.0.137; só arquivos alterados/adicionados pela regressão são tocados.
+          Made It: REPADMIN bordado restaurado, XP #35C4D5 no draw nativo, splash privado.
+          Reputation 1.0.118 e hobbies preservados.
+          Staff_Guespper e Lyrius_Atelie não entram na entrega.
+          EOF
+          cat > dist/docs/COMO-TESTAR.md <<'EOF'
+          # Como testar
+          1. Desligue a ilha.
+          2. Execute o rollback ItemsAdder apontando para plugins/ItemsAdder.
+          3. Ligue, rode /iareload e /iazip, depois reconecte.
+          4. Instale Reputation 1.0.118 por restart completo.
+          5. Cliente: remova 1.0.137 e use apenas STAFF 1.0.138 RC.
+          6. Confira Excalibur restaurada.
+          7. /repadmin precisa recuperar painel e bordas.
+          8. O número de XP precisa estar #35C4D5.
+          9. Splash precisa usar o logo Lyrius.
+          10. Teste bend entre dois players, mão local e Citizens.
+          11. Hotbar e ESC devem permanecer iguais à 1.0.137.
+          EOF
+          cat > dist/docs/RISCOS-E-OBSERVACOES.md <<'EOF'
+          # Riscos e observações
+          O runner validou bytecode, mixins, hashes, ZIPs e assinaturas, mas não abriu Minecraft gráfico/Paper.
+          O servidor do teste ainda anunciou LyriusReputation 1.0.109; a entrega inclui 1.0.118.
+          A chave privada histórica não está disponível nos artefatos acessíveis; os JARs RC usam certificado recovery 1.0.138. Se houver pin da fingerprint histórica, reassine o mesmo payload com a chave histórica antes da distribuição pública.
+          EOF
+          cat > dist/docs/CONTINUAR-PROJETO-LYRIUS.txt <<'EOF'
+          LINHA: Made It 1.0.138 RC + Reputation 1.0.118 + rollback Excalibur 1.0.138.
+          CAUSA 137: Immersive/shaders foram copiados globalmente para Lyrius_Excalibur.
+          ROLLBACK: diff byte a byte 1.0.135 -> 1.0.137, sem substituir pasta inteira.
+          REPADMIN: renderer bordado local para SCREEN_THEME ou título exato Lyrius · Administração.
+          XP: constante vanilla 8453920 -> 0x35C4D5.
+          SPLASH: SplashOverlay.LOGO -> lyriusrpmodplugin:textures/gui/title/lyrius.png.
+          CONGELADOS: bend 1.0.137, hotbar, ESC, Crimson, Grimório, Visual e nested lyriusrpmod.
+          EOF
+          cat > dist/docs/CODIGO-COMPLETO.md <<'EOF'
+          # Código completo 1.0.138
+          Os três arquivos Java completos estão em source/java/com/lyrius/client/mixin/.
+          O workflow integral e reproduzível está em source/BUILD-WORKFLOW-1.0.138.yml.
+          EOF
+          (cd dist && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          cat > dist/manifest.md <<'EOF'
+          # Lyrius RP 1.0.138
+          Minecraft 1.21.4 / Fabric / Java 21
+          Made It STAFF/PLAYERS: 1.0.138 RC
+          Reputation: 0.15.2-1.0.118-FINAL
+          ItemsAdder: rollback seletivo Excalibur calculado contra base 1.0.135
+          Staff_Guespper: não incluído
+          Lyrius_Atelie: não incluído
+          EOF
+          zip -qr LYRIUS-RP-1.0.138-EXCALIBUR-REPADMIN-XP-SPLASH-RC.zip dist
+          sha256sum LYRIUS-RP-1.0.138-EXCALIBUR-REPADMIN-XP-SPLASH-RC.zip | tee FULL-PACKAGE-SHA256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LYRIUS-RP-1.0.138-RC
+          path: |
+            dist
+            LYRIUS-RP-1.0.138-EXCALIBUR-REPADMIN-XP-SPLASH-RC.zip
+            FULL-PACKAGE-SHA256.txt
+          if-no-files-found: error
+          retention-days: 30
