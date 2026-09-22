@@ -1,8 +1,8 @@
 {
-  "version": "1.0.113",
-  "tag": "lyriusrp-1.0.113",
-  "file": "Lyrius-RP-Made-It-1.0.113-PLAYERS-SIGNED.jar",
-  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.113/Lyrius-RP-Made-It-1.0.113-PLAYERS-SIGNED.jar",
-  "sha256": "d8ae98974c0920f56a5a8c76913956e7103cdd2bdf22cf743b1b9712e459bf73",
-  "notes": "1.0.113: corrige o crash IllegalAccessError da chuva física, mantém o redirecionamento seguro da textura carmesim, o fade, o HUD e o bend por entidade."
+  "version": "1.0.140",
+  "tag": "lyriusrp-1.0.140",
+  "file": "Lyrius-RP-Made-It-1.0.140-PLAYERS-RC.jar",
+  "url": "https://github.com/Singapura7/lyrius-client-updates/releases/download/lyriusrp-1.0.140-rc1/Lyrius-RP-Made-It-1.0.140-PLAYERS-RC.jar",
+  "sha256": "309fa336f5c44241fd5b950e2692e9fcf87f187bed9637253b932647edf26084",
+  "notes": "RC de homologacao: logo Lyrius 160%, barra laranja e Excalibur seletiva no layout legado correto. Nao promover antes da validacao em jogo."
 }
