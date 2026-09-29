@@ -34,6 +34,7 @@ jobs:
           rm -rf atmosphere-build
           mkdir atmosphere-build
           tar -xzf /tmp/source.tar.gz -C atmosphere-build --strip-components=1
+          (cd atmosphere-build && patch -p1 < ../.ci/cp007-build1.patch)
           sed -i 's/mod_version=0.6.0-cp006/mod_version=0.7.0-cp007-build1/' atmosphere-build/gradle.properties
           sed -i "s/version = '0.6.0-cp006'/version = '0.7.0-cp007-build1'/" atmosphere-build/paper-sync/build.gradle
 
