@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -26,11 +26,14 @@ jobs:
         with:
           gradle-version: '8.12.1'
 
-      - name: Extract source
+      - name: Reassemble and verify source
         run: |
+          cat .ci/source.b64.* > /tmp/source.b64
+          base64 -d /tmp/source.b64 > /tmp/source.tar.gz
+          echo "096e24682bd84f7bb4dfd70cfeab7aeb8f2c74aa26ffe2ff000f37341b2abd8a  /tmp/source.tar.gz" | sha256sum -c -
           rm -rf atmosphere-build
           mkdir atmosphere-build
-          tar -xzf .ci/lyrius-atmosphere-cp006.tar.gz -C atmosphere-build --strip-components=1
+          tar -xzf /tmp/source.tar.gz -C atmosphere-build --strip-components=1
           sed -i 's/mod_version=0.6.0-cp006/mod_version=0.7.0-cp007-build1/' atmosphere-build/gradle.properties
           sed -i "s/version = '0.6.0-cp006'/version = '0.7.0-cp007-build1'/" atmosphere-build/paper-sync/build.gradle
 
@@ -55,9 +58,16 @@ jobs:
       - name: Collect artifacts
         run: |
           mkdir -p dist
-          cp atmosphere-build/build/libs/lyrius-atmosphere-0.7.0-cp007-build1.jar dist/LyriusAtmosphere-0.7.0-CP007-BUILD1-FABRIC-1.21.4.jar
-          cp atmosphere-build/paper-sync/build/libs/lyrius-atmosphere-sync-0.7.0-cp007-build1.jar dist/LyriusAtmosphereSync-0.7.0-CP007-BUILD1-PAPER-1.21.4.jar
-          (cd dist && sha256sum *.jar > SHA256SUMS.txt)
+          find atmosphere-build/build/libs -maxdepth 1 -type f -name '*.jar' -print
+          find atmosphere-build/paper-sync/build/libs -maxdepth 1 -type f -name '*.jar' -print
+          FABRIC_JAR="$(find atmosphere-build/build/libs -maxdepth 1 -type f -name 'lyrius-atmosphere-*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' | head -1)"
+          PAPER_JAR="$(find atmosphere-build/paper-sync/build/libs -maxdepth 1 -type f -name 'lyrius-atmosphere-sync-*.jar' ! -name '*-sources.jar' | head -1)"
+          test -n "$FABRIC_JAR"
+          test -n "$PAPER_JAR"
+          cp "$FABRIC_JAR" dist/LyriusAtmosphere-0.7.0-CP007-BUILD1-FABRIC-1.21.4.jar
+          cp "$PAPER_JAR" dist/LyriusAtmosphereSync-0.7.0-CP007-BUILD1-PAPER-1.21.4.jar
+          cp atmosphere-build/paper-sync/src/main/resources/config.yml dist/config.yml
+          (cd dist && sha256sum *.jar config.yml > SHA256SUMS.txt)
           unzip -p dist/LyriusAtmosphere-0.7.0-CP007-BUILD1-FABRIC-1.21.4.jar fabric.mod.json
           unzip -p dist/LyriusAtmosphereSync-0.7.0-CP007-BUILD1-PAPER-1.21.4.jar plugin.yml
 
