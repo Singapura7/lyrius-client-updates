@@ -1,0 +1,70 @@
+name: Lyrius Atmosphere CP007 Build
+
+on:
+  push:
+    branches:
+      - lyrius-atmosphere-build-cp007
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.12.1'
+
+      - name: Extract source
+        run: |
+          rm -rf atmosphere-build
+          mkdir atmosphere-build
+          tar -xzf .ci/lyrius-atmosphere-cp006.tar.gz -C atmosphere-build --strip-components=1
+          sed -i 's/mod_version=0.6.0-cp006/mod_version=0.7.0-cp007-build1/' atmosphere-build/gradle.properties
+          sed -i "s/version = '0.6.0-cp006'/version = '0.7.0-cp007-build1'/" atmosphere-build/paper-sync/build.gradle
+
+      - name: Build Fabric client
+        working-directory: atmosphere-build
+        run: gradle --no-daemon clean build --stacktrace
+
+      - name: Run core self-tests
+        working-directory: atmosphere-build
+        run: |
+          CP="build/classes/java/main:build/classes/java/test"
+          java -cp "$CP" com.lyrius.atmosphere.core.AtmosphereCoreSelfTest
+          java -cp "$CP" com.lyrius.atmosphere.core.AtmosphereVariantSelfTest
+          java -cp "$CP" com.lyrius.atmosphere.core.SnapshotBinaryCodecSelfTest
+          java -cp "$CP" com.lyrius.atmosphere.core.ProtocolSelfTest
+          java -cp "$CP" com.lyrius.atmosphere.core.EndToEndSyncSelfTest
+
+      - name: Build Paper sync
+        working-directory: atmosphere-build
+        run: gradle --no-daemon -p paper-sync clean build --stacktrace
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          cp atmosphere-build/build/libs/lyrius-atmosphere-0.7.0-cp007-build1.jar dist/LyriusAtmosphere-0.7.0-CP007-BUILD1-FABRIC-1.21.4.jar
+          cp atmosphere-build/paper-sync/build/libs/lyrius-atmosphere-sync-0.7.0-cp007-build1.jar dist/LyriusAtmosphereSync-0.7.0-CP007-BUILD1-PAPER-1.21.4.jar
+          (cd dist && sha256sum *.jar > SHA256SUMS.txt)
+          unzip -p dist/LyriusAtmosphere-0.7.0-CP007-BUILD1-FABRIC-1.21.4.jar fabric.mod.json
+          unzip -p dist/LyriusAtmosphereSync-0.7.0-CP007-BUILD1-PAPER-1.21.4.jar plugin.yml
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: lyrius-atmosphere-cp007-build1
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
